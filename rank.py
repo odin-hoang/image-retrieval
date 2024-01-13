@@ -23,7 +23,8 @@ def search():
     features = preprocessing.normalize(offline, norm="l2", axis=1)
     scores = features[:n_query] @ features[n_query:].T
     ranks = np.argsort(-scores.todense())
-    evaluate(ranks)
+    print(ranks)
+    # evaluate(ranks)
 
 
 def search_old(gamma=3):
@@ -106,5 +107,6 @@ if __name__ == "__main__":
         os.makedirs(args.cache_dir)
     dataset = Dataset(args.query_path, args.gallery_path)
     queries, gallery = dataset.queries, dataset.gallery
+    print(queries)
     search()
 
