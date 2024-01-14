@@ -23,7 +23,7 @@ def search():
     features = preprocessing.normalize(offline, norm="l2", axis=1)
     scores = features[:n_query] @ features[n_query:].T
     ranks = np.argsort(-scores.todense())
-    print(ranks)
+    return ranks
     # evaluate(ranks)
 
 
@@ -59,54 +59,67 @@ def evaluate(ranks):
     compute_map_and_print(gnd_name.split("_")[-1], ranks.T, gnd)
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--cache_dir',
-                        type=str,
-                        default='./cache',
-                        help="""
-                        Directory to cache
-                        """)
-    parser.add_argument('--dataset_name',
-                        type=str,
-                        required=True,
-                        help="""
-                        Name of the dataset
-                        """)
-    parser.add_argument('--query_path',
-                        type=str,
-                        required=True,
-                        help="""
-                        Path to query features
-                        """)
-    parser.add_argument('--gallery_path',
-                        type=str,
-                        required=True,
-                        help="""
-                        Path to gallery features
-                        """)
-    parser.add_argument('--gnd_path',
-                        type=str,
-                        help="""
-                        Path to ground-truth
-                        """)
-    parser.add_argument('-n', '--truncation_size',
-                        type=int,
-                        default=1000,
-                        help="""
-                        Number of images in the truncated gallery
-                        """)
-    args = parser.parse_args()
-    args.kq, args.kd = 10, 50
-    return args
+# def parse_args():
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--cache_dir',
+#                         type=str,
+#                         default='./cache',
+#                         help="""
+#                         Directory to cache
+#                         """)
+#     parser.add_argument('--dataset_name',
+#                         type=str,
+#                         required=True,
+#                         help="""
+#                         Name of the dataset
+#                         """)
+#     parser.add_argument('--query_path',
+#                         type=str,
+#                         required=True,
+#                         help="""
+#                         Path to query features
+#                         """)
+#     parser.add_argument('--gallery_path',
+#                         type=str,
+#                         required=True,
+#                         help="""
+#                         Path to gallery features
+#                         """)
+#     parser.add_argument('--gnd_path',
+#                         type=str,
+#                         help="""
+#                         Path to ground-truth
+#                         """)
+#     parser.add_argument('-n', '--truncation_size',
+#                         type=int,
+#                         default=1000,
+#                         help="""
+#                         Number of images in the truncated gallery
+#                         """)
+#     args = parser.parse_args()
+#     args.kq, args.kd = 10, 50
+#     return args
 
+class Args():
+    def __init__(self, cache_dir, query_path, gallery_path, truncation_size) -> None:
+        self.cache_dir = cache_dir
+        self.query_path = query_path
+        self.gallery_path = gallery_path
+        self.truncation_size = truncation_size
+        self.kq = 10
+        self.kd = 50
+        
 
 if __name__ == "__main__":
-    args = parse_args()
+    dataset_name = 'oxford5k' # gearvn
+    cache_dir = './tmp/{}_resnet'.format(dataset_name)
+    query_path = './data/query/{}_resnet_glob.npy'.format(dataset_name)
+    gallery_path = './data/gallery/{}_resnet_glob.npy'.format(dataset_name)
+    truncation_size = 10
+    args = Args(cache_dir=cache_dir, query_path=query_path, gallery_path=gallery_path, truncation_size=truncation_size)
     if not os.path.isdir(args.cache_dir):
         os.makedirs(args.cache_dir)
     dataset = Dataset(args.query_path, args.gallery_path)
     queries, gallery = dataset.queries, dataset.gallery
-    print(queries)
-    search()
-
+    ranks = search()
+    print(ranks)
